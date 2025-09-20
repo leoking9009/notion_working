@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 export interface NoticeFormData {
   title: string;
@@ -11,12 +11,14 @@ interface NoticeFormProps {
   onSubmit: (noticeData: NoticeFormData) => void;
   onCancel: () => void;
   loading?: boolean;
+  notice?: NoticeFormData;
 }
 
 export const NoticeForm: React.FC<NoticeFormProps> = ({
   onSubmit,
   onCancel,
-  loading = false
+  loading = false,
+  notice
 }) => {
   const [formData, setFormData] = useState<NoticeFormData>({
     title: '',
@@ -26,6 +28,12 @@ export const NoticeForm: React.FC<NoticeFormProps> = ({
   });
 
   const [errors, setErrors] = useState<Partial<NoticeFormData>>({});
+
+  useEffect(() => {
+    if (notice) {
+      setFormData(notice);
+    }
+  }, [notice]);
 
   const validateForm = (): boolean => {
     const newErrors: Partial<NoticeFormData> = {};
@@ -75,7 +83,7 @@ export const NoticeForm: React.FC<NoticeFormProps> = ({
     <div className="notice-form-overlay">
       <div className="notice-form-container">
         <div className="notice-form-header">
-          <h2>새 공지사항 작성</h2>
+          <h2>{notice ? '공지사항 수정' : '새 공지사항 작성'}</h2>
           <button
             className="close-button"
             onClick={onCancel}
@@ -152,7 +160,7 @@ export const NoticeForm: React.FC<NoticeFormProps> = ({
               className="submit-button"
               disabled={loading}
             >
-              {loading ? '등록 중...' : '등록'}
+              {loading ? (notice ? '수정 중...' : '등록 중...') : (notice ? '수정' : '등록')}
             </button>
           </div>
         </form>

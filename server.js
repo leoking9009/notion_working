@@ -434,6 +434,130 @@ app.delete('/api/notices/:pageId', async (req, res) => {
   }
 });
 
+// 댓글 조회 API
+app.get('/api/comments/:noticeId', async (req, res) => {
+  try {
+    const { noticeId } = req.params;
+    const commentsDatabaseId = process.env.VITE_NOTION_COMMENTS_DATABASE_ID;
+
+    if (!commentsDatabaseId) {
+      return res.status(400).json({ error: 'Comments Database ID not found' });
+    }
+
+    const response = await notion.databases.query({
+      database_id: commentsDatabaseId,
+      filter: {
+        property: '공지사항ID',
+        rich_text: {
+          equals: noticeId
+        }
+      },
+      sorts: [
+        {
+          timestamp: 'created_time',
+          direction: 'ascending'
+        }
+      ]
+    });
+
+    const formattedComments = response.results.map((comment) => ({
+      id: comment.id,
+      content: comment.properties.내용?.title?.[0]?.plain_text || '',
+      author: comment.properties.작성자?.rich_text?.[0]?.plain_text || '익명',
+      createdAt: comment.created_time,
+      noticeId: comment.properties.공지사항ID?.rich_text?.[0]?.plain_text || ''
+    }));
+
+    res.json({ success: true, comments: formattedComments });
+  } catch (error) {
+    console.error('Error fetching comments:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 댓글 생성 API
+app.post('/api/comments', async (req, res) => {
+  try {
+    const commentsDatabaseId = process.env.VITE_NOTION_COMMENTS_DATABASE_ID;
+    const { content, author, noticeId } = req.body;
+
+    console.log('Received comment request body:', req.body);
+
+    if (!commentsDatabaseId) {
+      return res.status(400).json({ error: 'Comments Database ID not found' });
+    }
+
+    if (!content || !author || !noticeId) {
+      return res.status(400).json({ error: 'Missing required fields: content, author, noticeId' });
+    }
+
+    const properties = {
+      내용: {
+        title: [
+          {
+            text: {
+              content: content
+            }
+          }
+        ]
+      },
+      작성자: {
+        rich_text: [
+          {
+            text: {
+              content: author
+            }
+          }
+        ]
+      },
+      공지사항ID: {
+        rich_text: [
+          {
+            text: {
+              content: noticeId
+            }
+          }
+        ]
+      }
+    };
+
+    const response = await notion.pages.create({
+      parent: { database_id: commentsDatabaseId },
+      properties: properties
+    });
+
+    const newComment = {
+      id: response.id,
+      content,
+      author,
+      createdAt: new Date().toISOString(),
+      noticeId
+    };
+
+    res.json({ success: true, comment: newComment });
+  } catch (error) {
+    console.error('Error creating comment:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 댓글 삭제 API
+app.delete('/api/comments/:commentId', async (req, res) => {
+  try {
+    const { commentId } = req.params;
+
+    const response = await notion.pages.update({
+      page_id: commentId,
+      archived: true
+    });
+
+    res.json({ success: true, comment: response });
+  } catch (error) {
+    console.error('Error deleting comment:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });

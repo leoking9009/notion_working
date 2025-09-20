@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { fetchNotices } from '../noticeApi';
+import { fetchNotices, updateNotice, deleteNotice } from '../noticeApi';
+import { NoticeForm, NoticeFormData } from './NoticeForm';
+import { CommentSection } from './CommentSection';
 
 interface NoticeItem {
   id: string;
@@ -18,6 +20,8 @@ export const NoticeListView: React.FC<NoticeListViewProps> = ({ onBack }) => {
   const [notices, setNotices] = useState<NoticeItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedNotice, setSelectedNotice] = useState<NoticeItem | null>(null);
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [editFormLoading, setEditFormLoading] = useState(false);
 
   const loadNotices = async () => {
     try {
@@ -60,6 +64,54 @@ export const NoticeListView: React.FC<NoticeListViewProps> = ({ onBack }) => {
     setSelectedNotice(null);
   };
 
+  const handleEditNotice = () => {
+    setShowEditForm(true);
+  };
+
+  const handleEditSubmit = async (noticeData: NoticeFormData) => {
+    if (!selectedNotice) return;
+
+    try {
+      setEditFormLoading(true);
+
+      await updateNotice(selectedNotice.id, {
+        title: `[${noticeData.author}] ${noticeData.title}`,
+        content: noticeData.content,
+        type: noticeData.type
+      });
+
+      setShowEditForm(false);
+      await loadNotices();
+
+      // 수정된 공지사항으로 선택된 상태 업데이트
+      const updatedNotices = await loadNotices();
+      const updatedNotice = updatedNotices.find(n => n.id === selectedNotice.id);
+      if (updatedNotice) {
+        setSelectedNotice(updatedNotice);
+      }
+    } catch (error) {
+      console.error('Failed to update notice:', error);
+    } finally {
+      setEditFormLoading(false);
+    }
+  };
+
+  const handleEditCancel = () => {
+    setShowEditForm(false);
+  };
+
+  const handleDeleteNotice = async () => {
+    if (!selectedNotice || !confirm('이 공지사항을 삭제하시겠습니까?')) return;
+
+    try {
+      await deleteNotice(selectedNotice.id);
+      setSelectedNotice(null);
+      await loadNotices();
+    } catch (error) {
+      console.error('Failed to delete notice:', error);
+    }
+  };
+
   if (selectedNotice) {
     return (
       <div className="notice-detail-view">
@@ -68,6 +120,14 @@ export const NoticeListView: React.FC<NoticeListViewProps> = ({ onBack }) => {
             ← 목록으로
           </button>
           <h2>공지사항 상세</h2>
+          <div className="notice-actions">
+            <button onClick={handleEditNotice} className="edit-button">
+              수정
+            </button>
+            <button onClick={handleDeleteNotice} className="delete-button">
+              삭제
+            </button>
+          </div>
         </div>
 
         <div className="notice-detail-content">
@@ -85,8 +145,24 @@ export const NoticeListView: React.FC<NoticeListViewProps> = ({ onBack }) => {
             <div className="notice-detail-body">
               <p>{selectedNotice.content}</p>
             </div>
+
+            <CommentSection noticeId={selectedNotice.id} />
           </div>
         </div>
+
+        {showEditForm && (
+          <NoticeForm
+            notice={{
+              title: selectedNotice.title,
+              content: selectedNotice.content,
+              author: selectedNotice.author,
+              type: selectedNotice.type
+            }}
+            onSubmit={handleEditSubmit}
+            onCancel={handleEditCancel}
+            loading={editFormLoading}
+          />
+        )}
       </div>
     );
   }

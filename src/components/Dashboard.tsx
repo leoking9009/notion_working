@@ -1,7 +1,8 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { NotionPage } from '../types';
 import { NoticeForm, NoticeFormData } from './NoticeForm';
-import { fetchNotices, createNotice } from '../noticeApi';
+import { fetchNotices, createNotice, updateNotice, deleteNotice } from '../noticeApi';
+import { CommentSection } from './CommentSection';
 
 interface DashboardProps {
   pages: NotionPage[];
@@ -25,6 +26,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ pages, onNavigate, onEditT
   const [noticeFormLoading, setNoticeFormLoading] = useState(false);
   const [notices, setNotices] = useState<any[]>([]);
   const [noticesLoading, setNoticesLoading] = useState(true);
+  const [selectedNotice, setSelectedNotice] = useState<any>(null);
+  const [showEditForm, setShowEditForm] = useState(false);
 
   const stats = useMemo((): TaskStats => {
     const today = new Date();
@@ -146,9 +149,126 @@ export const Dashboard: React.FC<DashboardProps> = ({ pages, onNavigate, onEditT
     setShowNoticeForm(false);
   };
 
+  const handleNoticeClick = (notice: any) => {
+    setSelectedNotice(notice);
+  };
+
+  const handleCloseNoticeDetail = () => {
+    setSelectedNotice(null);
+  };
+
+  const handleEditNotice = () => {
+    setShowEditForm(true);
+  };
+
+  const handleEditSubmit = async (noticeData: NoticeFormData) => {
+    if (!selectedNotice) return;
+
+    try {
+      setNoticeFormLoading(true);
+
+      await updateNotice(selectedNotice.id, {
+        title: `[${noticeData.author}] ${noticeData.title}`,
+        content: noticeData.content,
+        type: noticeData.type
+      });
+
+      setShowEditForm(false);
+      await loadNotices();
+
+      // 수정된 공지사항으로 선택된 상태 업데이트
+      const updatedNotices = notices.map(notice =>
+        notice.id === selectedNotice.id
+          ? { ...notice, title: noticeData.title, content: noticeData.content, author: noticeData.author, type: noticeData.type }
+          : notice
+      );
+      setNotices(updatedNotices);
+
+      const updatedNotice = updatedNotices.find(n => n.id === selectedNotice.id);
+      if (updatedNotice) {
+        setSelectedNotice(updatedNotice);
+      }
+    } catch (error) {
+      console.error('Failed to update notice:', error);
+    } finally {
+      setNoticeFormLoading(false);
+    }
+  };
+
+  const handleEditCancel = () => {
+    setShowEditForm(false);
+  };
+
+  const handleDeleteNotice = async () => {
+    if (!selectedNotice || !confirm('이 공지사항을 삭제하시겠습니까?')) return;
+
+    try {
+      await deleteNotice(selectedNotice.id);
+      setSelectedNotice(null);
+      await loadNotices();
+    } catch (error) {
+      console.error('Failed to delete notice:', error);
+    }
+  };
+
   useEffect(() => {
     loadNotices();
   }, []);
+
+  if (selectedNotice) {
+    return (
+      <div className="notice-detail-view">
+        <div className="notice-detail-header">
+          <button onClick={handleCloseNoticeDetail} className="back-button">
+            ← 대시보드로
+          </button>
+          <h2>공지사항 상세</h2>
+          <div className="notice-actions">
+            <button onClick={handleEditNotice} className="edit-button">
+              수정
+            </button>
+            <button onClick={handleDeleteNotice} className="delete-button">
+              삭제
+            </button>
+          </div>
+        </div>
+
+        <div className="notice-detail-content">
+          <div className="notice-detail-card">
+            <div className="notice-detail-meta">
+              <span className={`notice-type ${selectedNotice.type}`}>
+                {selectedNotice.type === 'important' ? '중요' : '일반'}
+              </span>
+              <span className="notice-author">{selectedNotice.author}</span>
+              <span className="notice-date">{selectedNotice.date}</span>
+            </div>
+
+            <h3 className="notice-detail-title">{selectedNotice.title}</h3>
+
+            <div className="notice-detail-body">
+              <p>{selectedNotice.content}</p>
+            </div>
+
+            <CommentSection noticeId={selectedNotice.id} />
+          </div>
+        </div>
+
+        {showEditForm && (
+          <NoticeForm
+            notice={{
+              title: selectedNotice.title,
+              content: selectedNotice.content,
+              author: selectedNotice.author,
+              type: selectedNotice.type
+            }}
+            onSubmit={handleEditSubmit}
+            onCancel={handleEditCancel}
+            loading={noticeFormLoading}
+          />
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="dashboard">
@@ -303,7 +423,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ pages, onNavigate, onEditT
                 <p>등록된 공지사항이 없습니다.</p>
               </div>
             ) : notices.map(notice => (
-              <div key={notice.id} className="notice-item">
+              <div key={notice.id} className="notice-item" onClick={() => handleNoticeClick(notice)}>
                 <div className="notice-header">
                   <span className={`notice-type ${notice.type}`}>
                     {notice.type === 'important' ? '중요' : '일반'}
