@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 
 export const LoginPage: React.FC = () => {
-  const { signInWithGoogle, signInAsTestUser } = useAuth();
+  const { signInWithGoogle } = useAuth();
   const googleButtonRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -47,24 +47,6 @@ export const LoginPage: React.FC = () => {
               >
                 Google로 로그인
               </button>
-
-              <div className="test-signin-section">
-                <p className="test-signin-label">테스트 로그인 (OAuth 문제 해결용)</p>
-                <div className="test-signin-buttons">
-                  <button
-                    onClick={() => signInAsTestUser('user')}
-                    className="test-signin-button user"
-                  >
-                    일반 사용자로 로그인
-                  </button>
-                  <button
-                    onClick={() => signInAsTestUser('admin')}
-                    className="test-signin-button admin"
-                  >
-                    관리자로 로그인
-                  </button>
-                </div>
-              </div>
             </div>
           </div>
         </div>

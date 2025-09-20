@@ -15,7 +15,6 @@ interface AuthContextType {
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   checkUserStatus: (user: User) => Promise<User>;
-  signInAsTestUser: (role: 'user' | 'admin') => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -177,19 +176,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const signInAsTestUser = (role: 'user' | 'admin') => {
-    const testUser: User = {
-      id: `test-${role}-${Date.now()}`,
-      name: role === 'admin' ? '테스트 관리자' : '테스트 사용자',
-      email: role === 'admin' ? 'admin@test.com' : 'user@test.com',
-      picture: 'https://via.placeholder.com/40',
-      role: role === 'admin' ? '관리자' : '사용자',
-      status: 'approved',
-    };
-
-    setUser(testUser);
-    localStorage.setItem('user', JSON.stringify(testUser));
-  };
 
   const value: AuthContextType = {
     user,
@@ -197,7 +183,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     signInWithGoogle,
     signOut,
     checkUserStatus,
-    signInAsTestUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
