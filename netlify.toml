@@ -1,0 +1,80 @@
+[build]
+  # 빌드 커맨드
+  command = "npm run build"
+
+  # 빌드 결과물이 생성될 디렉토리
+  publish = "dist"
+
+  # Netlify Functions 디렉토리
+  functions = "netlify/functions"
+
+[build.environment]
+  # Node.js 버전 설정
+  NODE_VERSION = "18"
+
+# SPA를 위한 리다이렉트 설정 (React Router 등)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# API 요청을 Netlify Functions로 프록시
+[[redirects]]
+  from = "/api/database"
+  to = "/.netlify/functions/database"
+  status = 200
+
+[[redirects]]
+  from = "/api/tasks"
+  to = "/.netlify/functions/tasks"
+  status = 200
+
+[[redirects]]
+  from = "/api/tasks/*"
+  to = "/.netlify/functions/tasks/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/api/users"
+  to = "/.netlify/functions/users"
+  status = 200
+
+[[redirects]]
+  from = "/api/users/*"
+  to = "/.netlify/functions/users/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/api/notices"
+  to = "/.netlify/functions/notices"
+  status = 200
+
+[[redirects]]
+  from = "/api/notices/*"
+  to = "/.netlify/functions/notices/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/api/comments"
+  to = "/.netlify/functions/comments"
+  status = 200
+
+[[redirects]]
+  from = "/api/comments/*"
+  to = "/.netlify/functions/comments/:splat"
+  status = 200
+
+# 보안 헤더 설정
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+# 정적 파일 캐싱 설정
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
