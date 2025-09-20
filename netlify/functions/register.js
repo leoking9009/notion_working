@@ -43,13 +43,13 @@ exports.handler = async (event, context) => {
 
     console.log('Registering user:', { googleId, name, email });
 
-    // 기존 사용자 확인
+    // 이메일로 기존 사용자 확인 (Google ID 필드가 없을 수 있음)
     const existingUsers = await notion.databases.query({
       database_id: usersDbId,
       filter: {
-        property: 'Google ID',
-        rich_text: {
-          equals: googleId
+        property: '이메일',
+        email: {
+          equals: email
         }
       }
     });
@@ -65,7 +65,7 @@ exports.handler = async (event, context) => {
           message: 'User already exists',
           user: {
             id: existingUser.id,
-            googleId: existingUser.properties['Google ID']?.rich_text?.[0]?.text?.content,
+            googleId: googleId, // 전달받은 googleId 사용
             name: existingUser.properties['이름']?.title?.[0]?.text?.content,
             email: existingUser.properties['이메일']?.email,
             role: existingUser.properties['역할']?.select?.name || '사용자',
@@ -86,9 +86,6 @@ exports.handler = async (event, context) => {
         },
         '이메일': {
           email: email
-        },
-        'Google ID': {
-          rich_text: [{ text: { content: googleId } }]
         },
         '프로필 사진': {
           url: profilePicture || null

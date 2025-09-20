@@ -166,7 +166,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (usersResponse.ok) {
         const usersData = await usersResponse.json();
         console.log('Users data:', usersData);
-        const existingUser = usersData.users.find((u: any) => u.googleId === user.id);
+        const existingUser = usersData.users.find((u: any) => u.email === user.email);
 
         if (existingUser) {
           console.log('Existing user found:', existingUser);

@@ -35,13 +35,13 @@ exports.handler = async (event, context) => {
       const body = JSON.parse(event.body);
       const { googleId, name, email, profilePicture } = body;
 
-      // 기존 사용자 확인
+      // 이메일로 기존 사용자 확인
       const existingUsers = await notion.databases.query({
         database_id: usersDbId,
         filter: {
-          property: 'Google ID',
-          rich_text: {
-            equals: googleId
+          property: '이메일',
+          email: {
+            equals: email
           }
         }
       });
@@ -55,7 +55,7 @@ exports.handler = async (event, context) => {
             message: 'User already exists',
             user: {
               id: existingUser.id,
-              googleId: existingUser.properties['Google ID']?.rich_text?.[0]?.text?.content,
+              googleId: googleId,
               name: existingUser.properties['이름']?.title?.[0]?.text?.content,
               email: existingUser.properties['이메일']?.email,
               role: existingUser.properties['역할']?.select?.name || '사용자',
@@ -75,9 +75,6 @@ exports.handler = async (event, context) => {
           },
           '이메일': {
             email: email
-          },
-          'Google ID': {
-            rich_text: [{ text: { content: googleId } }]
           },
           '프로필 사진': {
             url: profilePicture || null
@@ -123,7 +120,7 @@ exports.handler = async (event, context) => {
 
       const users = response.results.map(user => ({
         id: user.id,
-        googleId: user.properties['Google ID']?.rich_text?.[0]?.text?.content,
+        googleId: user.properties['Google ID']?.rich_text?.[0]?.text?.content || null,
         name: user.properties['이름']?.title?.[0]?.text?.content,
         email: user.properties['이메일']?.email,
         profilePicture: user.properties['프로필 사진']?.url,
