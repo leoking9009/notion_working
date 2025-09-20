@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install)",
+      "Bash(env)",
+      "Bash(compgen:*)",
+      "Read(//c/Users/user/**)",
+      "Bash(pip install:*)",
+      "Bash(mcp list-servers:*)",
+      "Bash(mcp:*)",
+      "Bash(findstr:*)",
+      "Bash(nslookup:*)",
+      "Bash(npm run dev:*)",
+      "Bash(dir:*)",
+      "Bash(taskkill:*)",
+      "Bash(npm run server:*)",
+      "Bash(curl:*)",
+      "Bash(netstat:*)",
+      "Bash(Stop-Process -Id 28808 -Force)",
+      "Bash(Stop-Process -Id 30560 -Force)",
+      "Bash(git init:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
