@@ -558,6 +558,189 @@ app.delete('/api/comments/:commentId', async (req, res) => {
   }
 });
 
+// 사용자 등록 API
+app.post('/api/users/register', async (req, res) => {
+  try {
+    const usersDatabaseId = process.env.VITE_NOTION_USERS_DATABASE_ID;
+    const { googleId, name, email, picture } = req.body;
+
+    console.log('User registration request:', { googleId, name, email });
+
+    if (!usersDatabaseId) {
+      return res.status(400).json({ error: 'Users Database ID not found' });
+    }
+
+    if (!googleId || !name || !email) {
+      return res.status(400).json({ error: 'Missing required fields: googleId, name, email' });
+    }
+
+    // 기존 사용자 확인
+    const existingUserResponse = await notion.databases.query({
+      database_id: usersDatabaseId,
+      filter: {
+        property: '구글ID',
+        rich_text: {
+          equals: googleId
+        }
+      }
+    });
+
+    if (existingUserResponse.results.length > 0) {
+      const user = existingUserResponse.results[0];
+      const formattedUser = {
+        id: user.id,
+        name: user.properties.이름?.title?.[0]?.plain_text || '',
+        email: user.properties.이메일?.email || '',
+        googleId: user.properties.구글ID?.rich_text?.[0]?.plain_text || '',
+        role: user.properties.역할?.select?.name || '일반사용자',
+        status: user.properties.승인상태?.select?.name || '대기중',
+        picture: user.properties.프로필사진?.url || ''
+      };
+
+      return res.json({ success: true, user: formattedUser, isNewUser: false });
+    }
+
+    // 새 사용자 등록
+    const properties = {
+      이름: {
+        title: [
+          {
+            text: {
+              content: name
+            }
+          }
+        ]
+      },
+      이메일: {
+        email: email
+      },
+      구글ID: {
+        rich_text: [
+          {
+            text: {
+              content: googleId
+            }
+          }
+        ]
+      },
+      역할: {
+        select: {
+          name: '일반사용자'
+        }
+      },
+      승인상태: {
+        select: {
+          name: '대기중'
+        }
+      },
+      가입일: {
+        date: {
+          start: new Date().toISOString().split('T')[0]
+        }
+      }
+    };
+
+    if (picture) {
+      properties.프로필사진 = {
+        url: picture
+      };
+    }
+
+    const response = await notion.pages.create({
+      parent: { database_id: usersDatabaseId },
+      properties: properties
+    });
+
+    const newUser = {
+      id: response.id,
+      name,
+      email,
+      googleId,
+      role: '일반사용자',
+      status: '대기중',
+      picture: picture || ''
+    };
+
+    res.json({ success: true, user: newUser, isNewUser: true });
+  } catch (error) {
+    console.error('Error registering user:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 사용자 목록 조회 API (관리자용)
+app.get('/api/users', async (req, res) => {
+  try {
+    const usersDatabaseId = process.env.VITE_NOTION_USERS_DATABASE_ID;
+
+    if (!usersDatabaseId) {
+      return res.status(400).json({ error: 'Users Database ID not found' });
+    }
+
+    const response = await notion.databases.query({
+      database_id: usersDatabaseId,
+      sorts: [
+        {
+          property: '가입일',
+          direction: 'descending'
+        }
+      ]
+    });
+
+    const formattedUsers = response.results.map((user) => ({
+      id: user.id,
+      name: user.properties.이름?.title?.[0]?.plain_text || '',
+      email: user.properties.이메일?.email || '',
+      googleId: user.properties.구글ID?.rich_text?.[0]?.plain_text || '',
+      role: user.properties.역할?.select?.name || '일반사용자',
+      status: user.properties.승인상태?.select?.name || '대기중',
+      joinDate: user.properties.가입일?.date?.start || user.created_time.split('T')[0],
+      picture: user.properties.프로필사진?.url || ''
+    }));
+
+    res.json({ success: true, users: formattedUsers });
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 사용자 승인/거부 API
+app.patch('/api/users/:userId/status', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { status, role } = req.body;
+
+    const properties = {};
+
+    if (status) {
+      properties.승인상태 = {
+        select: {
+          name: status
+        }
+      };
+    }
+
+    if (role) {
+      properties.역할 = {
+        select: {
+          name: role
+        }
+      };
+    }
+
+    const response = await notion.pages.update({
+      page_id: userId,
+      properties: properties
+    });
+
+    res.json({ success: true, user: response });
+  } catch (error) {
+    console.error('Error updating user status:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });

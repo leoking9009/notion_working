@@ -4,11 +4,16 @@ import { FilteredTaskView } from './components/FilteredTaskView';
 import { DatabaseTable } from './components/DatabaseTable';
 import { TaskForm, TaskFormData } from './components/TaskForm';
 import { NoticeListView } from './components/NoticeListView';
+import { LoginPage } from './components/LoginPage';
+import { AdminDashboard } from './components/AdminDashboard';
+import { UserStatusGuard } from './components/UserStatusGuard';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { fetchDatabase } from './notion';
 import { NotionPage } from './types';
 import './App.css';
 
-function App() {
+const AuthenticatedApp: React.FC = () => {
+  const { user, signOut } = useAuth();
   const [pages, setPages] = useState<NotionPage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -171,7 +176,10 @@ function App() {
     if (currentView === 'dashboard') {
       return (
         <header className="app-header">
-          <h1>자격기획팀 추진과제 현황</h1>
+          <div className="header-left">
+            <h1>자격기획팀 추진과제 현황</h1>
+            <p className="welcome-message">환영합니다, {user?.name}님!</p>
+          </div>
           <div className="header-buttons">
             <button onClick={handleCreateTask} className="create-button">
               새 과제 등록
@@ -179,8 +187,16 @@ function App() {
             <button onClick={() => setCurrentView('all')} className="view-all-button">
               전체 과제 보기
             </button>
+            {user?.role === '관리자' && (
+              <button onClick={() => setCurrentView('admin')} className="admin-button">
+                사용자 관리
+              </button>
+            )}
             <button onClick={loadDatabase} disabled={loading} className="refresh-button">
               {loading ? '새로고침 중...' : '새로고침'}
+            </button>
+            <button onClick={signOut} className="signout-button">
+              로그아웃
             </button>
           </div>
         </header>
@@ -188,7 +204,9 @@ function App() {
     } else if (currentView === 'all') {
       return (
         <header className="app-header">
-          <h1>전체 과제 목록</h1>
+          <div className="header-left">
+            <h1>전체 과제 목록</h1>
+          </div>
           <div className="header-buttons">
             <button onClick={handleCreateTask} className="create-button">
               새 과제 등록
@@ -198,6 +216,9 @@ function App() {
             </button>
             <button onClick={loadDatabase} disabled={loading} className="refresh-button">
               {loading ? '새로고침 중...' : '새로고침'}
+            </button>
+            <button onClick={signOut} className="signout-button">
+              로그아웃
             </button>
           </div>
         </header>
@@ -248,6 +269,12 @@ function App() {
           onBack={handleBackToDashboard}
         />
       );
+    } else if (currentView === 'admin') {
+      return (
+        <AdminDashboard
+          onBack={handleBackToDashboard}
+        />
+      );
     } else {
       return (
         <FilteredTaskView
@@ -283,6 +310,38 @@ function App() {
       )}
     </div>
   );
-}
+};
+
+const App: React.FC = () => {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  );
+};
+
+const AppContent: React.FC = () => {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="loading-screen">
+        <div className="loading-spinner">
+          <p>로딩 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <LoginPage />;
+  }
+
+  return (
+    <UserStatusGuard>
+      <AuthenticatedApp />
+    </UserStatusGuard>
+  );
+};
 
 export default App;
