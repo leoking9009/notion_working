@@ -4,7 +4,7 @@ const { Client } = require('@notionhq/client');
 require('dotenv').config();
 
 const app = express();
-const port = 8000;
+const port = 8001;
 
 // CORS 설정
 app.use(cors());
@@ -247,6 +247,189 @@ app.delete('/api/tasks/:pageId', async (req, res) => {
     res.json({ success: true, page: response });
   } catch (error) {
     console.error('Error deleting task:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 공지사항 조회 API
+app.get('/api/notices', async (req, res) => {
+  try {
+    const noticesDatabaseId = process.env.VITE_NOTION_NOTICES_DATABASE_ID;
+
+    if (!noticesDatabaseId) {
+      return res.status(400).json({ error: 'Notices Database ID not found' });
+    }
+
+    const response = await notion.databases.query({
+      database_id: noticesDatabaseId,
+      sorts: [
+        {
+          property: '작성일',
+          direction: 'descending'
+        }
+      ]
+    });
+
+    const formattedData = {
+      results: response.results.map((page) => ({
+        id: page.id,
+        created_time: page.created_time,
+        last_edited_time: page.last_edited_time,
+        properties: page.properties,
+      })),
+      next_cursor: response.next_cursor,
+      has_more: response.has_more,
+    };
+
+    res.json(formattedData);
+  } catch (error) {
+    console.error('Error fetching notices:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 새 공지사항 생성 API
+app.post('/api/notices', async (req, res) => {
+  try {
+    const noticesDatabaseId = process.env.VITE_NOTION_NOTICES_DATABASE_ID;
+    const title = req.body.title || req.body['제목'];
+    const content = req.body.content || req.body['내용'];
+    const author = req.body.author || req.body['작성자'];
+    const type = req.body.type || req.body['유형'] || 'general';
+
+    console.log('Received notice request body:', req.body);
+    console.log('Extracted fields:', { title, content, author, type });
+
+    if (!noticesDatabaseId) {
+      return res.status(400).json({ error: 'Notices Database ID not found' });
+    }
+
+    const properties = {
+      제목: {
+        title: [
+          {
+            text: {
+              content: `[${author || '익명'}] ${title || ''}`
+            }
+          }
+        ]
+      },
+      내용: {
+        rich_text: [
+          {
+            text: {
+              content: content || ''
+            }
+          }
+        ]
+      },
+      선택: {
+        select: {
+          name: type === 'important' ? '중요' : '일반'
+        }
+      },
+      작성일: {
+        date: {
+          start: new Date().toISOString().split('T')[0]
+        }
+      }
+    };
+
+    const response = await notion.pages.create({
+      parent: { database_id: noticesDatabaseId },
+      properties: properties
+    });
+
+    res.json({ success: true, page: response });
+  } catch (error) {
+    console.error('Error creating notice:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 공지사항 수정 API
+app.patch('/api/notices/:pageId', async (req, res) => {
+  try {
+    const { pageId } = req.params;
+    console.log('PATCH notice request body:', req.body);
+    const title = req.body.title !== undefined ? req.body.title : req.body['제목'];
+    const content = req.body.content !== undefined ? req.body.content : req.body['내용'];
+    const author = req.body.author !== undefined ? req.body.author : req.body['작성자'];
+    const type = req.body.type !== undefined ? req.body.type : req.body['유형'];
+
+    console.log('Extracted fields:', { title, content, author, type });
+
+    const properties = {};
+
+    if (title !== undefined) {
+      properties.제목 = {
+        title: [
+          {
+            text: {
+              content: title
+            }
+          }
+        ]
+      };
+    }
+
+    if (content !== undefined) {
+      properties.내용 = {
+        rich_text: [
+          {
+            text: {
+              content: content
+            }
+          }
+        ]
+      };
+    }
+
+    if (author !== undefined) {
+      properties.작성자 = {
+        rich_text: [
+          {
+            text: {
+              content: author
+            }
+          }
+        ]
+      };
+    }
+
+    if (type !== undefined) {
+      properties.선택 = {
+        select: {
+          name: type === 'important' ? '중요' : '일반'
+        }
+      };
+    }
+
+    const response = await notion.pages.update({
+      page_id: pageId,
+      properties: properties
+    });
+
+    res.json({ success: true, page: response });
+  } catch (error) {
+    console.error('Error updating notice:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 공지사항 삭제 API
+app.delete('/api/notices/:pageId', async (req, res) => {
+  try {
+    const { pageId } = req.params;
+
+    const response = await notion.pages.update({
+      page_id: pageId,
+      archived: true
+    });
+
+    res.json({ success: true, page: response });
+  } catch (error) {
+    console.error('Error deleting notice:', error);
     res.status(500).json({ error: error.message });
   }
 });

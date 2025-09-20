@@ -1,5 +1,7 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { NotionPage } from '../types';
+import { NoticeForm, NoticeFormData } from './NoticeForm';
+import { fetchNotices, createNotice } from '../noticeApi';
 
 interface DashboardProps {
   pages: NotionPage[];
@@ -19,6 +21,11 @@ export interface TaskStats {
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({ pages, onNavigate, onEditTask }) => {
+  const [showNoticeForm, setShowNoticeForm] = useState(false);
+  const [noticeFormLoading, setNoticeFormLoading] = useState(false);
+  const [notices, setNotices] = useState<any[]>([]);
+  const [noticesLoading, setNoticesLoading] = useState(true);
+
   const stats = useMemo((): TaskStats => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -81,6 +88,67 @@ export const Dashboard: React.FC<DashboardProps> = ({ pages, onNavigate, onEditT
       .filter(page => page.properties.긴급?.checkbox && !page.properties.완료?.checkbox)
       .slice(0, limit);
   };
+
+  const handleCreateNotice = () => {
+    setShowNoticeForm(true);
+  };
+
+  const loadNotices = async () => {
+    try {
+      setNoticesLoading(true);
+      const response = await fetchNotices();
+
+      const formattedNotices = response.results.map(notice => {
+        const fullTitle = notice.properties.제목?.title?.[0]?.plain_text || '';
+        const authorMatch = fullTitle.match(/^\[([^\]]+)\]\s*(.*)/);
+        const author = authorMatch ? authorMatch[1] : '익명';
+        const title = authorMatch ? authorMatch[2] : fullTitle;
+
+        return {
+          id: notice.id,
+          title: title,
+          content: notice.properties.내용?.rich_text?.[0]?.plain_text || '',
+          author: author,
+          type: notice.properties.선택?.select?.name === '중요' ? 'important' : 'general',
+          date: notice.properties.작성일?.date?.start || notice.created_time.split('T')[0]
+        };
+      });
+
+      setNotices(formattedNotices);
+    } catch (error) {
+      console.error('Failed to load notices:', error);
+    } finally {
+      setNoticesLoading(false);
+    }
+  };
+
+  const handleNoticeSubmit = async (noticeData: NoticeFormData) => {
+    try {
+      setNoticeFormLoading(true);
+
+      await createNotice({
+        title: noticeData.title,
+        content: noticeData.content,
+        author: noticeData.author,
+        type: noticeData.type
+      });
+
+      setShowNoticeForm(false);
+      await loadNotices(); // 공지사항 목록 새로고침
+    } catch (error) {
+      console.error('Failed to create notice:', error);
+    } finally {
+      setNoticeFormLoading(false);
+    }
+  };
+
+  const handleNoticeCancel = () => {
+    setShowNoticeForm(false);
+  };
+
+  useEffect(() => {
+    loadNotices();
+  }, []);
 
   return (
     <div className="dashboard">
@@ -216,7 +284,59 @@ export const Dashboard: React.FC<DashboardProps> = ({ pages, onNavigate, onEditT
               ))}
           </div>
         </div>
+
+        {/* 팀 소통 게시판 */}
+        <div className="dashboard-section team-board">
+          <div className="section-header">
+            <h3>팀 소통 게시판</h3>
+            <button className="add-notice-btn" onClick={handleCreateNotice}>
+              ✏️ 글쓰기
+            </button>
+          </div>
+          <div className="notice-list">
+            {noticesLoading ? (
+              <div className="loading-notices">
+                <p>공지사항을 불러오는 중...</p>
+              </div>
+            ) : notices.length === 0 ? (
+              <div className="no-notices">
+                <p>등록된 공지사항이 없습니다.</p>
+              </div>
+            ) : notices.map(notice => (
+              <div key={notice.id} className="notice-item">
+                <div className="notice-header">
+                  <span className={`notice-type ${notice.type}`}>
+                    {notice.type === 'important' ? '중요' : '일반'}
+                  </span>
+                  <span className="notice-author">{notice.author}</span>
+                  <span className="notice-date">{notice.date}</span>
+                </div>
+                <div className="notice-content">
+                  <h4>{notice.title}</h4>
+                  <p>{notice.content}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="board-footer">
+            <button
+              className="view-all-notices"
+              onClick={() => onNavigate('notices')}
+            >
+              전체 공지사항 보기
+            </button>
+          </div>
+        </div>
       </div>
+
+      {showNoticeForm && (
+        <NoticeForm
+          onSubmit={handleNoticeSubmit}
+          onCancel={handleNoticeCancel}
+          loading={noticeFormLoading}
+        />
+      )}
     </div>
   );
 };

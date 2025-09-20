@@ -3,6 +3,7 @@ import { Dashboard } from './components/Dashboard';
 import { FilteredTaskView } from './components/FilteredTaskView';
 import { DatabaseTable } from './components/DatabaseTable';
 import { TaskForm, TaskFormData } from './components/TaskForm';
+import { NoticeListView } from './components/NoticeListView';
 import { fetchDatabase } from './notion';
 import { NotionPage } from './types';
 import './App.css';
@@ -239,6 +240,12 @@ function App() {
           onEditTask={handleEditTask}
           onDeleteTask={handleDeleteTask}
           onCompleteTask={handleCompleteTask}
+        />
+      );
+    } else if (currentView === 'notices') {
+      return (
+        <NoticeListView
+          onBack={handleBackToDashboard}
         />
       );
     } else {
