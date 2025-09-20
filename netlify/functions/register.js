@@ -91,10 +91,7 @@ exports.handler = async (event, context) => {
           url: profilePicture || null
         },
         '역할': {
-          select: { name: '사용자' }
-        },
-        '상태': {
-          select: { name: 'pending' }
+          select: { name: '일반사용자' }
         }
       }
     });
@@ -111,7 +108,7 @@ exports.handler = async (event, context) => {
           googleId: googleId,
           name: name,
           email: email,
-          role: '사용자',
+          role: '일반사용자',
           status: 'pending',
           joinDate: response.created_time
         }
