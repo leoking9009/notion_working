@@ -1,3 +1,5 @@
+import { API_BASE_URL } from './utils/api';
+
 export interface Comment {
   id: string;
   content: string;
@@ -18,7 +20,7 @@ export interface CreateCommentResponse {
 
 export const fetchComments = async (noticeId: string): Promise<CommentResponse> => {
   try {
-    const response = await fetch(`http://localhost:8001/api/comments/${noticeId}`);
+    const response = await fetch(`${API_BASE_URL}/.netlify/functions/comments/${noticeId}`);
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -38,7 +40,7 @@ export const createComment = async (commentData: {
   noticeId: string;
 }): Promise<CreateCommentResponse> => {
   try {
-    const response = await fetch('http://localhost:8001/api/comments', {
+    const response = await fetch(`${API_BASE_URL}/.netlify/functions/comments`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -60,7 +62,7 @@ export const createComment = async (commentData: {
 
 export const deleteComment = async (commentId: string): Promise<any> => {
   try {
-    const response = await fetch(`http://localhost:8001/api/comments/${commentId}`, {
+    const response = await fetch(`${API_BASE_URL}/.netlify/functions/comments/${commentId}`, {
       method: 'DELETE',
     });
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { API_BASE_URL } from '../utils/api';
 
 interface User {
   id: string;
@@ -25,7 +26,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch('http://localhost:8001/api/users');
+      const response = await fetch(`${API_BASE_URL}/.netlify/functions/users`);
 
       if (!response.ok) {
         throw new Error(`사용자 목록을 불러올 수 없습니다: ${response.status}`);
@@ -43,7 +44,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
 
   const updateUserStatus = async (userId: string, status: 'approved' | 'rejected', role?: string) => {
     try {
-      const response = await fetch(`http://localhost:8001/api/users/${userId}/status`, {
+      const response = await fetch(`${API_BASE_URL}/.netlify/functions/users/${userId}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

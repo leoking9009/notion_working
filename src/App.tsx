@@ -10,6 +10,7 @@ import { UserStatusGuard } from './components/UserStatusGuard';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { fetchDatabase } from './notion';
 import { NotionPage } from './types';
+import { API_BASE_URL } from './utils/api';
 import './App.css';
 
 const AuthenticatedApp: React.FC = () => {
@@ -52,7 +53,7 @@ const AuthenticatedApp: React.FC = () => {
 
       if (editingTask) {
         // 수정
-        const response = await fetch(`http://localhost:8000/api/tasks/${editingTask.id}`, {
+        const response = await fetch(`${API_BASE_URL}/.netlify/functions/tasks/${editingTask.id}`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
@@ -73,7 +74,7 @@ const AuthenticatedApp: React.FC = () => {
         }
       } else {
         // 생성
-        const response = await fetch('http://localhost:8000/api/tasks', {
+        const response = await fetch(`${API_BASE_URL}/.netlify/functions/tasks`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -117,7 +118,7 @@ const AuthenticatedApp: React.FC = () => {
 
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:8000/api/tasks/${task.id}`, {
+      const response = await fetch(`${API_BASE_URL}/.netlify/functions/tasks/${task.id}`, {
         method: 'DELETE',
       });
 
@@ -141,7 +142,7 @@ const AuthenticatedApp: React.FC = () => {
 
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:8000/api/tasks/${task.id}`, {
+      const response = await fetch(`${API_BASE_URL}/.netlify/functions/tasks/${task.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

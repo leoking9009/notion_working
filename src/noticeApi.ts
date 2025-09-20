@@ -1,3 +1,5 @@
+import { API_BASE_URL } from './utils/api';
+
 export interface NoticeData {
   id: string;
   title: string;
@@ -15,7 +17,7 @@ export interface NoticeResponse {
 
 export const fetchNotices = async (): Promise<NoticeResponse> => {
   try {
-    const response = await fetch('http://localhost:8001/api/notices');
+    const response = await fetch(`${API_BASE_URL}/.netlify/functions/notices`);
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -36,7 +38,7 @@ export const createNotice = async (noticeData: {
   type: 'important' | 'general';
 }): Promise<any> => {
   try {
-    const response = await fetch('http://localhost:8001/api/notices', {
+    const response = await fetch(`${API_BASE_URL}/.netlify/functions/notices`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -66,7 +68,7 @@ export const updateNotice = async (
   }>
 ): Promise<any> => {
   try {
-    const response = await fetch(`http://localhost:8001/api/notices/${noticeId}`, {
+    const response = await fetch(`${API_BASE_URL}/.netlify/functions/notices/${noticeId}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -88,7 +90,7 @@ export const updateNotice = async (
 
 export const deleteNotice = async (noticeId: string): Promise<any> => {
   try {
-    const response = await fetch(`http://localhost:8001/api/notices/${noticeId}`, {
+    const response = await fetch(`${API_BASE_URL}/.netlify/functions/notices/${noticeId}`, {
       method: 'DELETE',
     });
 
