@@ -1,24 +1,11 @@
 import { DatabaseResponse } from './types';
+import { API_BASE_URL } from './utils/api';
 
 export const fetchDatabase = async (): Promise<DatabaseResponse> => {
   try {
-    // 직접 Notion API 호출 (임시 해결책)
-    const notionToken = import.meta.env.VITE_NOTION_TOKEN;
-    const databaseId = import.meta.env.VITE_NOTION_DATABASE_ID;
+    console.log('Fetching database from:', `${API_BASE_URL}/.netlify/functions/database`);
 
-    if (!notionToken || !databaseId) {
-      throw new Error('Notion token or database ID is missing');
-    }
-
-    const response = await fetch(`https://api.notion.com/v1/databases/${databaseId}/query`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${notionToken}`,
-        'Content-Type': 'application/json',
-        'Notion-Version': '2022-06-28'
-      },
-      body: JSON.stringify({})
-    });
+    const response = await fetch(`${API_BASE_URL}/.netlify/functions/database`);
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -28,6 +15,11 @@ export const fetchDatabase = async (): Promise<DatabaseResponse> => {
     return data;
   } catch (error) {
     console.error('Error fetching database:', error);
-    throw error;
+    // Fallback: 빈 데이터 반환
+    return {
+      results: [],
+      next_cursor: null,
+      has_more: false
+    };
   }
 };

@@ -2594,3 +2594,189 @@ td {
     gap: 5px;
   }
 }
+
+/* 개선된 모바일 반응형 스타일 */
+@media (max-width: 768px) {
+  /* 전체 레이아웃 개선 */
+  .App {
+    padding: 10px;
+  }
+
+  /* 헤더 개선 */
+  .app-header h1 {
+    font-size: 1.4rem !important;
+    word-break: keep-all;
+    line-height: 1.3;
+  }
+
+  .welcome-message {
+    font-size: 0.85rem;
+  }
+
+  .header-buttons button {
+    padding: 8px 12px;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  /* 텍스트 줄바꿈 최적화 */
+  .task-item h4,
+  .notice-list-title,
+  .user-name,
+  .notice-detail-title {
+    word-break: keep-all;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    line-height: 1.4;
+  }
+
+  /* 테이블 개선 */
+  .database-table {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  table {
+    min-width: 800px;
+    font-size: 13px;
+  }
+
+  th, td {
+    padding: 8px 6px;
+    font-size: 12px;
+    word-break: break-word;
+    max-width: 120px;
+  }
+
+  /* 버튼 개선 */
+  .action-buttons {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .action-buttons button {
+    width: 100%;
+    font-size: 11px;
+    padding: 6px 8px;
+  }
+
+  /* 통계 카드 개선 */
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+  }
+
+  .stat-card {
+    padding: 15px;
+  }
+
+  .stat-number {
+    font-size: 1.8rem;
+  }
+}
+
+/* 소형 모바일 최적화 */
+@media (max-width: 480px) {
+  .App {
+    padding: 5px;
+  }
+
+  .app-header h1 {
+    font-size: 1.2rem !important;
+  }
+
+  .welcome-message {
+    font-size: 0.8rem;
+  }
+
+  .header-buttons {
+    gap: 6px;
+  }
+
+  .header-buttons button {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  /* 통계 카드 세로 배치 */
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .stat-card {
+    padding: 12px;
+  }
+
+  .stat-number {
+    font-size: 1.5rem;
+  }
+
+  /* 테이블 더 작게 */
+  table {
+    min-width: 600px;
+    font-size: 11px;
+  }
+
+  th, td {
+    padding: 6px 4px;
+    font-size: 11px;
+    max-width: 100px;
+  }
+
+  /* 관리자 테이블 개선 */
+  .user-table-header,
+  .user-table-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 12px 15px;
+  }
+
+  .user-table-header span:nth-child(n+3),
+  .user-table-row > *:nth-child(n+3) {
+    display: none;
+  }
+
+  .user-actions {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .approve-button,
+  .reject-button {
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 11px;
+  }
+}
+
+/* 초소형 화면 최적화 */
+@media (max-width: 360px) {
+  .app-header h1 {
+    font-size: 1.1rem !important;
+  }
+
+  .header-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .header-buttons button {
+    width: 100%;
+    padding: 8px;
+  }
+
+  .stat-number {
+    font-size: 1.3rem;
+  }
+
+  table {
+    min-width: 500px;
+    font-size: 10px;
+  }
+
+  th, td {
+    padding: 4px 2px;
+    font-size: 10px;
+  }
+}
