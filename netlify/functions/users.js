@@ -79,8 +79,14 @@ exports.handler = async (event, context) => {
           '프로필 사진': {
             url: profilePicture || null
           },
+          '구글ID': {
+            rich_text: [{ text: { content: googleId } }]
+          },
           '역할': {
             select: { name: '일반사용자' }
+          },
+          '승인상태': {
+            select: { name: '대기중' }
           }
         }
       });
@@ -96,7 +102,7 @@ exports.handler = async (event, context) => {
             name: name,
             email: email,
             role: '일반사용자',
-            status: 'pending',
+            status: '대기중',
             joinDate: response.created_time
           }
         }),
@@ -117,12 +123,12 @@ exports.handler = async (event, context) => {
 
       const users = response.results.map(user => ({
         id: user.id,
-        googleId: user.properties['Google ID']?.rich_text?.[0]?.text?.content || null,
+        googleId: user.properties['구글ID']?.rich_text?.[0]?.text?.content || null,
         name: user.properties['이름']?.title?.[0]?.text?.content,
         email: user.properties['이메일']?.email,
         profilePicture: user.properties['프로필 사진']?.url,
-        role: user.properties['역할']?.select?.name || '사용자',
-        status: user.properties['상태']?.select?.name || 'pending',
+        role: user.properties['역할']?.select?.name || '일반사용자',
+        status: user.properties['승인상태']?.select?.name || '대기중',
         joinDate: user.created_time
       }));
 
