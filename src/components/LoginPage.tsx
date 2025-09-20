@@ -6,14 +6,38 @@ export const LoginPage: React.FC = () => {
   const googleButtonRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (window.google && googleButtonRef.current) {
-      window.google.accounts.id.renderButton(googleButtonRef.current, {
-        theme: 'outline',
-        size: 'large',
-        text: 'signin_with',
-        shape: 'rectangular',
-        logo_alignment: 'left',
-      });
+    const initializeGoogleButton = () => {
+      if (window.google && googleButtonRef.current) {
+        try {
+          window.google.accounts.id.renderButton(googleButtonRef.current, {
+            theme: 'outline',
+            size: 'large',
+            text: 'signin_with',
+            shape: 'rectangular',
+            logo_alignment: 'left',
+            width: '100%',
+          });
+        } catch (error) {
+          console.error('Failed to render Google button:', error);
+        }
+      }
+    };
+
+    // Google Sign-In API가 로드되기까지 대기
+    if (window.google) {
+      initializeGoogleButton();
+    } else {
+      const checkGoogle = setInterval(() => {
+        if (window.google) {
+          clearInterval(checkGoogle);
+          initializeGoogleButton();
+        }
+      }, 100);
+
+      // 10초 후 타임아웃
+      setTimeout(() => {
+        clearInterval(checkGoogle);
+      }, 10000);
     }
   }, []);
 

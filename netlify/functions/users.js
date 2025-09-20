@@ -31,7 +31,7 @@ exports.handler = async (event, context) => {
 
   try {
     // POST /users/register - 사용자 등록
-    if (event.httpMethod === 'POST' && event.path.includes('/register')) {
+    if (event.httpMethod === 'POST' && (event.path.includes('/register') || event.rawUrl.includes('/register'))) {
       const body = JSON.parse(event.body);
       const { googleId, name, email, profilePicture } = body;
 

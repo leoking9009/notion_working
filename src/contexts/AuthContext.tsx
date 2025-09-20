@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { API_BASE_URL } from '../utils/api';
 
 export interface User {
   id: string;
@@ -121,8 +122,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const checkUserStatus = async (user: User): Promise<User> => {
     try {
+      console.log('Checking user status for:', user);
+
       // 사용자 등록 요청
-      const registerResponse = await fetch('http://localhost:8001/api/users/register', {
+      const registerUrl = `${API_BASE_URL}/.netlify/functions/register`;
+      console.log('Register URL:', registerUrl);
+
+      const registerResponse = await fetch(registerUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -135,31 +141,48 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }),
       });
 
+      console.log('Register response status:', registerResponse.status);
+
       if (registerResponse.ok) {
         const registerData = await registerResponse.json();
+        console.log('Register data:', registerData);
         return {
           ...user,
           role: registerData.user.role,
           status: registerData.user.status,
         };
+      } else {
+        const errorText = await registerResponse.text();
+        console.error('Register failed:', errorText);
       }
 
       // 등록이 실패한 경우, 기존 사용자 정보 조회
-      const usersResponse = await fetch('http://localhost:8001/api/users');
+      const usersUrl = `${API_BASE_URL}/.netlify/functions/users`;
+      console.log('Users URL:', usersUrl);
+
+      const usersResponse = await fetch(usersUrl);
+      console.log('Users response status:', usersResponse.status);
+
       if (usersResponse.ok) {
         const usersData = await usersResponse.json();
+        console.log('Users data:', usersData);
         const existingUser = usersData.users.find((u: any) => u.googleId === user.id);
 
         if (existingUser) {
+          console.log('Existing user found:', existingUser);
           return {
             ...user,
             role: existingUser.role,
             status: existingUser.status,
           };
         }
+      } else {
+        const errorText = await usersResponse.text();
+        console.error('Users fetch failed:', errorText);
       }
 
       // 기본값 반환 (새 사용자, 대기 상태)
+      console.log('Returning default user status');
       return {
         ...user,
         role: '사용자',

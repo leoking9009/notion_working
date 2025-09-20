@@ -26,7 +26,8 @@
       "Bash(git push:*)",
       "Bash(Stop-Process -Id 25580 -Force)",
       "Bash(node server.js)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(git tag:*)"
     ],
     "deny": [],
     "ask": []
