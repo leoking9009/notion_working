@@ -649,20 +649,26 @@ td {
 }
 
 .back-button {
-  background: #718096;
+  background: #2d3748;
   color: white;
   border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
+  padding: 12px 24px;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 16px;
+  font-weight: 600;
   margin-bottom: 20px;
+  display: inline-block;
+  min-width: 180px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(45, 55, 72, 0.3);
   transition: all 0.2s;
 }
 
 .back-button:hover {
-  background: #4a5568;
+  background: #1a202c;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(45, 55, 72, 0.4);
 }
 
 .view-title-section {
