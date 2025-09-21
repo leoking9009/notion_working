@@ -46,10 +46,10 @@ exports.handler = async (event, context) => {
         id: notice.id,
         title: notice.properties['제목']?.title?.[0]?.text?.content || '',
         content: notice.properties['내용']?.rich_text?.[0]?.text?.content || '',
-        type: notice.properties['유형']?.select?.name || 'general',
-        author: notice.properties['작성자']?.rich_text?.[0]?.text?.content || '',
-        createdAt: notice.properties['작성일']?.created_time || notice.created_time,
-        isImportant: notice.properties['중요']?.checkbox || false
+        type: notice.properties['선택']?.select?.name === '중요' ? 'important' : 'general',
+        createdAt: notice.properties['작성일']?.date?.start || notice.created_time.split('T')[0],
+        author: '',
+        isImportant: notice.properties['선택']?.select?.name === '중요'
       }));
 
       return {
@@ -64,26 +64,25 @@ exports.handler = async (event, context) => {
       const body = JSON.parse(event.body);
       const { title, content, type, author, isImportant } = body;
 
+      console.log('Creating notice with data:', { title, content, type, author, isImportant });
+
+      // 제목을 [작성자] 제목 형식으로 결합
+      const fullTitle = `[${author || '익명'}] ${title || ''}`;
+
       const response = await notion.pages.create({
         parent: { database_id: noticesDbId },
         properties: {
           '제목': {
-            title: [{ text: { content: title || '' } }]
+            title: [{ text: { content: fullTitle } }]
           },
           '내용': {
             rich_text: [{ text: { content: content || '' } }]
           },
-          '유형': {
-            select: { name: type || 'general' }
-          },
-          '작성자': {
-            rich_text: [{ text: { content: author || '' } }]
-          },
-          '중요': {
-            checkbox: isImportant || false
+          '선택': {
+            select: { name: type === 'important' ? '중요' : '일반' }
           },
           '작성일': {
-            created_time: {}
+            date: { start: new Date().toISOString().split('T')[0] }
           }
         }
       });

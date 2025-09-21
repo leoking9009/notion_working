@@ -101,8 +101,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ pages, onNavigate, onEditT
       setNoticesLoading(true);
       const response = await fetchNotices();
 
-      const formattedNotices = response.results.map(notice => {
-        const fullTitle = notice.properties.제목?.title?.[0]?.plain_text || '';
+      console.log('Fetched notices response:', response);
+
+      const formattedNotices = response.notices?.map(notice => {
+        const fullTitle = notice.title || '';
         const authorMatch = fullTitle.match(/^\[([^\]]+)\]\s*(.*)/);
         const author = authorMatch ? authorMatch[1] : '익명';
         const title = authorMatch ? authorMatch[2] : fullTitle;
@@ -110,16 +112,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ pages, onNavigate, onEditT
         return {
           id: notice.id,
           title: title,
-          content: notice.properties.내용?.rich_text?.[0]?.plain_text || '',
+          content: notice.content || '',
           author: author,
-          type: notice.properties.선택?.select?.name === '중요' ? 'important' : 'general',
-          date: notice.properties.작성일?.date?.start || notice.created_time.split('T')[0]
+          type: notice.type || 'general',
+          date: notice.createdAt || new Date().toISOString().split('T')[0]
         };
-      });
+      }) || [];
 
+      console.log('Formatted notices:', formattedNotices);
       setNotices(formattedNotices);
     } catch (error) {
       console.error('Failed to load notices:', error);
+      setNotices([]); // 실패 시 빈 배열로 설정
     } finally {
       setNoticesLoading(false);
     }

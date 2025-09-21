@@ -2813,4 +2813,64 @@ td {
   .filtered-task-view {
     padding: 10px !important;
   }
+
+  /* NoticeForm 모바일 최적화 */
+  .notice-form-container {
+    width: 95% !important;
+    max-width: none !important;
+    margin: 10px !important;
+    max-height: 95vh !important;
+  }
+
+  .notice-form-header {
+    padding: 16px 16px 0 16px !important;
+    margin-bottom: 16px !important;
+  }
+
+  .notice-form-header h2 {
+    font-size: 1.25rem !important;
+  }
+
+  .notice-form {
+    padding: 0 16px 16px 16px !important;
+  }
+
+  .form-group {
+    margin-bottom: 16px !important;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    font-size: 16px !important;
+    padding: 12px !important;
+  }
+
+  .form-buttons {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+
+  .form-buttons button {
+    width: 100% !important;
+    padding: 14px !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    border-radius: 8px !important;
+  }
+
+  .submit-button {
+    background: #4299e1 !important;
+    color: white !important;
+    border: none !important;
+    order: 1 !important;
+  }
+
+  .cancel-button {
+    background: #e2e8f0 !important;
+    color: #4a5568 !important;
+    border: none !important;
+    order: 2 !important;
+  }
 }
