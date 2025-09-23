@@ -7,6 +7,7 @@ import { NoticeListView } from './components/NoticeListView';
 import { LoginPage } from './components/LoginPage';
 import { AdminDashboard } from './components/AdminDashboard';
 import { UserStatusGuard } from './components/UserStatusGuard';
+import InstallPrompt from './components/InstallPrompt';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { fetchDatabase } from './notion';
 import { NotionPage } from './types';
@@ -309,6 +310,8 @@ const AuthenticatedApp: React.FC = () => {
           loading={formLoading}
         />
       )}
+
+      <InstallPrompt />
     </div>
   );
 };
