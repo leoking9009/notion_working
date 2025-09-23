@@ -447,7 +447,7 @@ app.get('/api/comments/:noticeId', async (req, res) => {
     const response = await notion.databases.query({
       database_id: commentsDatabaseId,
       filter: {
-        property: '공지사항ID',
+        property: '공지사항 ID',
         rich_text: {
           equals: noticeId
         }
@@ -462,10 +462,10 @@ app.get('/api/comments/:noticeId', async (req, res) => {
 
     const formattedComments = response.results.map((comment) => ({
       id: comment.id,
-      content: comment.properties.내용?.title?.[0]?.plain_text || '',
+      content: comment.properties.내용?.rich_text?.[0]?.plain_text || '',
       author: comment.properties.작성자?.rich_text?.[0]?.plain_text || '익명',
       createdAt: comment.created_time,
-      noticeId: comment.properties.공지사항ID?.rich_text?.[0]?.plain_text || ''
+      noticeId: comment.properties['공지사항 ID']?.rich_text?.[0]?.plain_text || ''
     }));
 
     res.json({ success: true, comments: formattedComments });
@@ -493,7 +493,7 @@ app.post('/api/comments', async (req, res) => {
 
     const properties = {
       내용: {
-        title: [
+        rich_text: [
           {
             text: {
               content: content
@@ -510,7 +510,7 @@ app.post('/api/comments', async (req, res) => {
           }
         ]
       },
-      공지사항ID: {
+      '공지사항 ID': {
         rich_text: [
           {
             text: {
