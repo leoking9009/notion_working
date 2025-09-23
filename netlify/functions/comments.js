@@ -44,7 +44,7 @@ exports.handler = async (event, context) => {
         },
         sorts: [
           {
-            property: '작성일',
+            timestamp: 'created_time',
             direction: 'ascending'
           }
         ]
@@ -55,7 +55,7 @@ exports.handler = async (event, context) => {
         content: comment.properties['내용']?.rich_text?.[0]?.text?.content || '',
         author: comment.properties['작성자']?.rich_text?.[0]?.text?.content || '',
         noticeId: comment.properties['공지사항 ID']?.rich_text?.[0]?.text?.content || '',
-        createdAt: comment.properties['작성일']?.created_time || comment.created_time
+        createdAt: comment.created_time
       }));
 
       return {
@@ -81,9 +81,6 @@ exports.handler = async (event, context) => {
           },
           '공지사항 ID': {
             rich_text: [{ text: { content: noticeId || '' } }]
-          },
-          '작성일': {
-            created_time: {}
           }
         }
       });
